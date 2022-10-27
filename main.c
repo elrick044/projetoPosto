@@ -1,12 +1,20 @@
 #include <stdbool.h>
 #include <stdio.h>
-#include <process.h>
 #include <time.h>
+#include <process.h>
 
 #define C_RED "\033[31m"
 #define C_GREEN "\033[32m"
 #define C_YELLOW "\033[33m"
 #define NONE "\033[0m"
+
+struct Tcarro{
+    char modelo[255];
+    char marca[255];
+    int ano;
+    int portas[255];
+    int eletrico;
+};
 
 void delay(unsigned int secs) {
     unsigned int end = time(0) + secs;
@@ -20,14 +28,85 @@ void flush_in() {
     } while (ch != EOF && ch != '\n');
 }
 
+int abastecer(int numCarros, int qtdLitros, int eletrico){
+    int aux;
+    int nkwh;
+    system("clear");
+    if (numCarros > 0) {
+        if (eletrico == 1){
+
+            printf("Digite o número de KWh: ");
+            scanf("%i", &nkwh);
+            printf("%sCarro abastecido%s\n", C_GREEN, NONE);
+
+        } else {
+
+            printf("%sInforme a quantidade de combustivel: %s\n", C_YELLOW, NONE);
+
+            scanf("%i", &aux);
+            if (aux > qtdLitros) {
+                printf("%sNão temos todo esse combustivel no nosso tanque%s\n", C_RED,
+                       NONE);
+            } else {
+                printf("%sCarro abastecido%s\n", C_GREEN, NONE);
+            }
+        }
+
+    } else {
+        printf("%sNão há carros na fila%s\n", C_RED, NONE);
+    }
+
+    return aux;
+}
+
+struct Tcarro lerCarro(){
+    struct Tcarro aux;
+    printf("Digite o modelo do carro: \n");
+    scanf("%s", &aux.modelo);
+    printf("Digite a marca do carro: \n");
+    scanf("%s", &aux.marca);
+    printf("Digite o ano do carro: \n");
+    scanf("%i", &aux.ano);
+    printf("Digite o número de portas do carro: \n");
+    scanf("%i", &aux.portas);
+    printf("É elétrico? (1 = sim; 0 = não): \n");
+    scanf("%i", &aux.eletrico);
+
+    return aux;
+}
+
+void imprimirCarros(struct Tcarro carros[], int tamanho){
+    for (int i = 0; i < tamanho; ++i) {
+        if(carros[i].ano == 0){
+            break;
+        }else{
+            printf("Modelo: %s\n", carros[i].modelo);
+            printf("Marca: %s\n", carros[i].marca);
+            printf("Ano: %i\n", carros[i].ano);
+            printf("Portas: %i\n\n", carros[i].portas);
+        }
+
+    }
+}
+
 int main(void) {
 
-    int tamanho;
+    int tamanho = 10;
     float preco;
     float precoKWh;
     int numCarros = 0;
-    int carrosAtendidos = 0;
     int qtdLitros = 200;
+    int carrosAtendidos = 0;
+
+    int litrosAbastecidos;//refere-se a quantidade de litros abastecidos em cada vez, para subtrair do totoal;
+
+    struct Tcarro fila[tamanho];
+    struct Tcarro atendidos[tamanho];
+
+    for (int i = 0; i < tamanho; ++i) {
+        fila[i].ano = 0;
+        atendidos[i].ano = 0;
+    }
 
     printf("Autor: Erick G. da Silva\n");
     printf("Este é um programa para melhorar o processo de gerenciamento das "
@@ -55,6 +134,7 @@ int main(void) {
         }
     }
 
+    /*
     while (true) {
         printf("Digite o tamanho da fila: \n");
         scanf("%i", &tamanho);
@@ -64,6 +144,7 @@ int main(void) {
             printf("%sDigite um tamanho maior que zero%s\n", C_RED, NONE);
         }
     }
+    */
 
 
 
@@ -91,48 +172,35 @@ int main(void) {
             case 1:
                 system("clear");
                 if (numCarros < tamanho) {
-                    printf("%sCarro adicionado%s\n", C_GREEN, NONE);
+                    fila[numCarros] = lerCarro();
                     numCarros++;
-                    printf("Número de carros: %i", numCarros);
+                    printf("Número de carros: %i\n", numCarros);
+                    delay(2);
+                    system("clear");
                 } else {
                     printf("%sA fila está cheia%s\n", C_RED, NONE);
                 }
                 break;
             case 2:
-                system("clear");
-                if (numCarros > 0) {
-                    int eltrico = 0;
-                    printf("O carro é elétrico? (1 - sim; 0 - não)");
-                    scanf("%i", &eltrico);
-                    if (eltrico == 1) {
-                        printf("Digite o número de KWh: ");
-                        printf("%sCarro abastecido%s\n", C_GREEN, NONE);
-                        numCarros--;
-                        carrosAtendidos++;
-                    } else {
+                litrosAbastecidos = abastecer(numCarros, qtdLitros, fila[carrosAtendidos].eletrico);
+                qtdLitros = qtdLitros - litrosAbastecidos;
+                numCarros--;
 
-                        printf("%sInforme a quantidade de combustivel: %s\n", C_YELLOW, NONE);
-                        int aux;
-                        scanf("%i", &aux);
-                        if (aux > qtdLitros) {
-                            printf("%sNão temos todo esse combustivel no nosso tanque%s\n", C_RED,
-                                   NONE);
-                        } else {
-                            printf("%sCarro abastecido%s\n", C_GREEN, NONE);
-                            qtdLitros -= aux;
-                            numCarros--;
-                            carrosAtendidos++;
-                        }
-                    }
+                atendidos[carrosAtendidos] = fila[carrosAtendidos];
 
-                } else {
-                    printf("%sNão há carros na fila%s\n", C_RED, NONE);
-                }
+                fila[carrosAtendidos].ano = 0;
+                carrosAtendidos++;
+
+
+
 
                 break;
             case 3:
                 system("clear");
+                imprimirCarros(fila,tamanho);
                 printf("%sCarros exibidos%s\n", C_GREEN, NONE);
+                delay(5);
+                system("clear");
                 break;
             case 4:
                 system("clear");
