@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <time.h>
+#include <stdlib.h>
 
 #define C_RED "\033[31m"
 #define C_GREEN "\033[32m"
@@ -8,8 +9,8 @@
 #define NONE "\033[0m"
 
 struct Tcarro{
-    char modelo[255];
-    char marca[255];
+    char modelo[30];
+    char marca[30];
     int ano;
     int portas;
     int eletrico;
@@ -31,6 +32,8 @@ void tirarCarroDaFila(struct Tcarro fila[], int tamanho){
     for(int i = 0; i < tamanho - 1; i++){
         fila[i] = fila[i+1];
     }
+
+    fila[tamanho - 1].ano = 0;
 }
 
 int abastecer(int numCarros, int qtdLitros, int eletrico){
@@ -98,9 +101,24 @@ void imprimirCarros(struct Tcarro carros[], int tamanho){
     }
 }
 
+double ler(char text[255]){
+    float var;
+    while (true) {
+        printf("%s \n", text);
+        scanf("%f", &var);
+        if (var > 0) {
+            break;
+        } else {
+            printf("%sDigite um valor maior que zero%s\n", C_RED, NONE);
+        }
+    }
+
+    return var;
+}
+
 int main(void) {
 
-    int tamanho = 10;
+    int tamanho = 0;
     float preco;
     float precoKWh;
     int numCarros = 0;
@@ -109,8 +127,8 @@ int main(void) {
 
     int litrosAbastecidos;//refere-se a quantidade de litros abastecidos em cada vez, para subtrair do totoal;
 
-    struct Tcarro fila[tamanho];
-    struct Tcarro atendidos[tamanho];
+    struct Tcarro *fila;
+    struct Tcarro *atendidos;
 
     for (int i = 0; i < tamanho; ++i) {
         fila[i].ano = 0;
@@ -123,37 +141,12 @@ int main(void) {
 
     printf("\n---------------\n\n");
 
-    while (true) {
-        printf("Digite o valor do combustivel: \n");
-        scanf("%f", &preco);
-        if (preco > 0) {
-            break;
-        } else {
-            printf("%sDigite um precço maior que zero%s\n", C_RED, NONE);
-        }
-    }
+    tamanho = (int) ler("Digite o tamanho da fila: ");
+    preco = ler("Digite o valor do combustivel: ");
+    precoKWh = ler("Digite o valor por KWh: ");
 
-    while (true) {
-        printf("Digite o valor por KWh: \n");
-        scanf("%f", &precoKWh);
-        if (precoKWh > 0) {
-            break;
-        } else {
-            printf("%sDigite um precço maior que zero%s\n", C_RED, NONE);
-        }
-    }
-
-    /*
-    while (true) {
-        printf("Digite o tamanho da fila: \n");
-        scanf("%i", &tamanho);
-        if (tamanho > 0) {
-            break;
-        } else {
-            printf("%sDigite um tamanho maior que zero%s\n", C_RED, NONE);
-        }
-    }
-    */
+    fila = (struct Tcarro *) calloc (tamanho, sizeof(struct Tcarro));
+    atendidos = (struct Tcarro *) calloc (1, sizeof(struct Tcarro));
 
 
 
@@ -199,7 +192,17 @@ int main(void) {
 
                 tirarCarroDaFila(fila,tamanho);
 
+                int x = (carrosAtendidos + 1) * sizeof(struct Tcarro);
+
+
+                printf("%lu\n", sizeof(struct Tcarro));
+                printf("%lu\n", sizeof(atendidos));
+                printf("%i\n", x);
                 carrosAtendidos++;
+
+                atendidos = (struct Tcarro*) realloc (atendidos, (carrosAtendidos + 1) * sizeof(struct Tcarro));
+
+
                 break;
             case 3:
                 system("clear");
@@ -241,9 +244,8 @@ int main(void) {
                             system("clear");
                             break;
                         case 'c':
-                            printf("%sForam atendidos %i carros%s\n", C_YELLOW, carrosAtendidos,
-                                   NONE);
-                            delay(2);
+                            imprimirCarros(atendidos, carrosAtendidos);
+                            delay(3);
                             system("clear");
                             break;
                         case 'd':
@@ -258,7 +260,6 @@ int main(void) {
                             printf("%sRelatório e%s", C_YELLOW, NONE);
                             break;
                     }
-                    break;
                 }
         }
     }
